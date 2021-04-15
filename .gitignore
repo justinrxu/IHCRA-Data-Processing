@@ -1,0 +1,6 @@
+csv/*
+!csv/.gitkeep 
+
+.idea/**/workspace.xml
+
+/venv/
