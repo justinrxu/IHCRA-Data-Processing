@@ -2,5 +2,6 @@ csv/*
 !csv/.gitkeep 
 
 .idea/**/workspace.xml
+.idea/dictionaries
 
 /venv/

@@ -45,8 +45,7 @@ formats = {
 
 # CODE TO TEST A SINGLE PERIODICAL STRING #
 
-# test = "Informatsina Sluzhba, UKR. Biuleten' (Informational Service for the Ukrainian Christian Movement." \
-#        " Bulletin), New York, NY. 1967."
+# test = ""
 # m = re.search(formats['default'], test)
 # for group in re_dict:
 #     print(m.group(group))
@@ -65,7 +64,7 @@ def create_entry(text, fmt):
     return csv_entry
 
 
-# Generates a csv containing all periodical on the page and places in ../csv/ folder for each language found in the
+# Generates a csv containing all periodical on the page and places in csv/ folder for each language found in the
 # lib.umn.edu website.
 # Note: Not fully functional due to the inconsistent html formatting of the periodicals on the webpages
 def from_website():
@@ -80,39 +79,38 @@ def from_website():
         # I tried to grab all div's with strong text here, here's where the inconsistent html formatting of the
         # different pages caused a problem for me. Some pages had text in p tags, some didn't have bold, etc.
         # This is the biggest issue with generating csv's directly from the website. I made a band-aid solution by
-        # copying all the important text contents of each periodical webpage into the ../raw_text/ folder, since
+        # copying all the important text contents of each periodical webpage into the raw_text/ folder, since
         # Ellen mentioned that the code is just to convert web content into csv's, and that maintainability of code
         # was not a priority. The working solution is the from_text() function below.
         periodicals = language_doc.xpath('//div[contains(@class, "field-items")]//strong')
-        with open("../csv/" + language_element.attrib['title'].replace('/', '-') + ".csv", 'w', newline='') as f:
+        with open("csv/" + language_element.attrib['title'].replace('/', '-') + ".csv", 'w', newline='') as f:
             writer = csv.writer(f, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
             for periodical in periodicals:
                 try:
                     writer.writerow(create_entry(periodical.text + periodical.tail, formats['default']))
-                except:
+                except AttributeError:
                     print(language_element.attrib['title'], end="")
                     try:
                         print(": " + periodical.text + periodical.tail)
-                    except:
+                    except AttributeError:
                         print()
 
 
-# Generates a csv for each .txt in the ../raw_text/ folder and puts them in the ../csv/ folder.
+# Generates a csv for each .txt in the raw_text/ folder and puts them in the csv/ folder.
 # Note: This function correctly works on all periodicals except ~20, all of which this function will print out for
 # manual addition. from_text() works off of manually created .txt's from the lib.umn.edu website, which are found in
-# the ../raw_text/ folder.
+# the raw_text/ folder.
 def from_text():
-    csv_files = [f for f in listdir("../csv/") if isfile(join("../csv/", f))]
+    csv_files = [f for f in listdir("csv/") if isfile(join("csv/", f))]
     for csv_file in csv_files:
-        periodicals = []
-        with open(f"../raw_text/{csv_file}.txt", 'r') as f:
+        with open(f"raw_text/{csv_file}.txt", 'r') as f:
             periodicals = re.split("\n+", f.read())
-        with open(f"../csv/{csv_file}", 'w', newline='') as f:
+        with open(f"csv/{csv_file}", 'w', newline='') as f:
             writer = csv.writer(f, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
             for periodical in periodicals:
                 try:
                     writer.writerow(create_entry(periodical, formats['default']))
-                except:
+                except AttributeError:
                     if periodical not in ["", " ", "Return to Top", "Return to top.", "Return to Top.",
                                           "Newspapers", "Serials", "Yugoslav", "Macedonia"]:
                         print(csv_file + ": " + periodical)
@@ -120,4 +118,4 @@ def from_text():
 
 print()
 # from_website()
-# from_text()
+from_text()
