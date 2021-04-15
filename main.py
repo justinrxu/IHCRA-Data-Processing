@@ -17,7 +17,7 @@ def create_lambda(group):
 
 
 # Protocols for extracting column data from a re match object. Currently all protocols just return what is grabbed from
-# the regular expression matcch object group.
+# the regular expression match object group.
 protocols = {
     'title': create_lambda('title'),
     'alt_title': create_lambda('alt_title'),
@@ -37,27 +37,28 @@ protocols = {
 formats = {
     'default':
         ('(?P<title>[^\(]+(?= \()|[^,\(]+)( \((?P<alt_title>.+?)\))?, '
-        '(?P<place_of_publication>((Ft.)|(St.)|(Mt.)|[^0-9,])+?(,[^0-9,]+?)*)\. +'
-        '((?P<frequency>[^0-9]+?)((: )|\.))?((?P<date_range>[^\(]+?)\.)?'
-        '( *\((?P<microfilm>Microfilm: .+?)\)\.)?( *(?P<secondary_languages>.+?)\.)?')
+         '(?P<place_of_publication>((Ft.)|(St.)|(Mt.)|[^0-9,])+?(,[^0-9,]+?)*)\. +'
+         '((?P<frequency>[^0-9]+?)((: )|\.))?((?P<date_range>[^\(]+?)\.)?'
+         '( *\((?P<microfilm>Microfilm: .+?)\)\.)?( *(?P<secondary_languages>.+?)\.)?')
 }
 
-## CODE TO TEST A SINGLE PERIODICAL STRING ##
 
-# test = "Informatsina Sluzhba, UKR. Biuleten' (Informational Service for the Ukrainian Christian Movement. Bulletin)," \
-#        " New York, NY. 1967."
+# CODE TO TEST A SINGLE PERIODICAL STRING #
+
+# test = "Informatsina Sluzhba, UKR. Biuleten' (Informational Service for the Ukrainian Christian Movement." \
+#        " Bulletin), New York, NY. 1967."
 # m = re.search(formats['default'], test)
 # for group in re_dict:
 #     print(m.group(group))
 # exit(0)
 
-## CODE TO TEST A SINGLE PERIODICAL STRING ##
+# CODE TO TEST A SINGLE PERIODICAL STRING #
 
 
 # Takes a row of text assumed to be of a single periodical as well as a format from the formats dict, returns an
 # array representing a single csv row entry corresponding to the inputted periodical text
-def create_entry(text, format):
-    entry = re.search(format, text)
+def create_entry(text, fmt):
+    entry = re.search(fmt, text)
     csv_entry = []
     for column in protocols.keys():
         csv_entry.append(protocols[column](entry))
@@ -72,16 +73,17 @@ def from_website():
     main_doc = html.fromstring(main_page.content)
 
     # Grabs all the sidebar elements under 'Periodical' on the periodicals webpage
-    for language_element in main_doc.xpath('//span[contains(@class, "submenu")]//a[contains(@href, "/ihrca/periodicals/")]'):
+    for language_element in main_doc.xpath(
+            '//span[contains(@class, "submenu")]//a[contains(@href, "/ihrca/periodicals/")]'):
         language_page = requests.get(UMN_LIB_STUB + language_element.attrib['href'])
-        langauge_doc = html.fromstring(language_page.content)
+        language_doc = html.fromstring(language_page.content)
         # I tried to grab all div's with strong text here, here's where the inconsistent html formatting of the
         # different pages caused a problem for me. Some pages had text in p tags, some didn't have bold, etc.
         # This is the biggest issue with generating csv's directly from the website. I made a band-aid solution by
         # copying all the important text contents of each periodical webpage into the ../raw_text/ folder, since
         # Ellen mentioned that the code is just to convert web content into csv's, and that maintainability of code
         # was not a priority. The working solution is the from_text() function below.
-        periodicals = langauge_doc.xpath('//div[contains(@class, "field-items")]//strong')
+        periodicals = language_doc.xpath('//div[contains(@class, "field-items")]//strong')
         with open("../csv/" + language_element.attrib['title'].replace('/', '-') + ".csv", 'w', newline='') as f:
             writer = csv.writer(f, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
             for periodical in periodicals:
