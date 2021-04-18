@@ -2,6 +2,6 @@
 
 Pycharm project to transfer webpage-based periodicals on https://www.lib.umn.edu/ihrca/periodicals into csv format.
 <br><br>
-Required packages are in requirements.txt, main.py generates relevant csv's in /csv/ folder.
+Required packages are in requirements.txt, main.py generates relevant csv's in /csv/ folder. Delete .gitkeep file in csv/ folder before running.
 <br><br>
 Commit messages follow conventions outlined [here](https://www.conventionalcommits.org/en/v1.0.0/).
